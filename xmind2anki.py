@@ -20,13 +20,31 @@ def clean_data(data):
     clean_data = { key: format_dict(key,value) for key, value in flattened_data.items() if value and is_relevant(key) }
     return unflatten(clean_data)
 
+def is_nested(children):
+    flat_children = flatten(children)
+    nested_count = [1 if key.count('children.attached') >= 1 else 0 
+                for key in flat_children.keys()]
+    #print(nested_count)
+    average = sum(nested_count) / len(nested_count)
+    return True if average > 0.5 else False
+
 def format_data(clean_data):
     result = []
     for branch in clean_data: 
         title = branch.pop("title")
-        get_nodes = lambda sub_b: "<br>".join( flatten(sub_b).values() ).replace('\n', '').replace("<br>", '<br>\n')
-        sub_branches = "<br>\n".join([ title + ': ' + get_nodes(sub_b) for sub_b in branch["children"]["attached"] ])
-        result.append([title, sub_branches])
+        children = branch["children"]["attached"]
+        nested = is_nested(children)
+        #pprint.pprint(flatten(children))
+        #print(nested)
+        #print()
+        if nested:
+            build_card = lambda value_list: [f"{title}: {value_list[0]}","<br>\n".join(value_list[1:])]
+            card = [ build_card( list(flatten(sub_b).values()) ) for sub_b in children ]
+            for res in card: result.append(res)
+        else:
+            build_card = lambda value_list: "<br>\n".join(value_list)
+            card = [ build_card( list(flatten(sub_b).values()) ) for sub_b in children ]
+            result.append([title, "<br>\n".join(card)])
         #pprint.pprint(f'{title}: {sub_branches}')
     return result
 
