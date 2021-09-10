@@ -30,7 +30,7 @@ def get_data(filename):
 def clean_data(data):
     flattened_data = flatten(data)
     is_relevant = lambda key: "title" in key or 'content.content' in key
-    format_dict = lambda key, value: f'\\({value}\\)' if 'content.content' in key else value
+    format_dict = lambda key, value: f'${value}$' if 'content.content' in key else value
     clean_data = { key: format_dict(key,value) for key, value in flattened_data.items() if value and is_relevant(key) }
     return unflatten(clean_data)
 
@@ -41,13 +41,13 @@ def is_nested(children):
     return True if average > 0.5 else False
 
 def build_nested_cards(data, title):
-    build_card = lambda value_list: [f"{title}: {value_list[0]}","<br>\n".join(value_list[1:])]
+    build_card = lambda value_list: [f"{title}: {value_list[0]}","[latex]"+"<br>\n".join(value_list[1:])+"[/latex]"]
     return [ build_card( list(flatten(sub_b).values()) ) for sub_b in data ]
 
 def build_flat_cards(data, title):
     build_card = lambda value_list: "<br>\n".join(value_list)
     card = "<br>\n".join([ build_card( list(flatten(sub_b).values()) ) for sub_b in data ])
-    return [[title, card]]
+    return [[title, f'[latex]{card}[/latex]']]
 
 def format_data(clean_data):
     result = []
