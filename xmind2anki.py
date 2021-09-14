@@ -41,11 +41,11 @@ def is_nested(children):
     return True if average > 0.5 else False
 
 def build_nested_cards(data, title):
-    build_card = lambda value_list: [f"{title}: {value_list[0]}","[latex]"+"<br>\n".join(value_list[1:])+"[/latex]"]
+    build_card = lambda value_list: [f"{title}: {value_list[0]}","[latex]"+"\n".join(value_list[1:])+"[/latex]"]
     return [ build_card( list(flatten(sub_b).values()) ) for sub_b in data ]
 
 def build_flat_cards(data, title):
-    build_card = lambda value_list: "<br>\n".join(value_list)
+    build_card = lambda value_list: "\n".join(value_list)
     card = "<br>\n".join([ build_card( list(flatten(sub_b).values()) ) for sub_b in data ])
     return [[title, f'[latex]{card}[/latex]']]
 
