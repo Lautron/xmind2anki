@@ -1,8 +1,6 @@
 from json_flatten import flatten, unflatten
 import json, zipfile, pprint, csv, sys
 
-# get_latex --> clean_data = {key: value for key, value in flattened_data.items() if "content.content" in key}
-
 def handle_input(args):
     args = args[1:]
     if not args:
@@ -30,7 +28,7 @@ def get_data(filename):
 def clean_data(data):
     flattened_data = flatten(data)
     is_relevant = lambda key: "title" in key or 'content.content' in key
-    format_dict = lambda key, value: f'${value}$' if 'content.content' in key else value
+    format_dict = lambda key, value: '$'+ value.replace("\n","") +'$' if 'content.content' in key else value
     clean_data = { key: format_dict(key,value) for key, value in flattened_data.items() if value and is_relevant(key) }
     return unflatten(clean_data)
 
@@ -40,9 +38,15 @@ def is_nested(children):
     average = sum(nested_count) / len(nested_count)
     return True if average > 0.5 else False
 
+def build_nested_card(sub_b, title):
+    flat_data = flatten(sub_b)
+    first_value = flat_data.pop(list(flat_data.keys())[0])
+    sub_branches = unflatten(flat_data)['children']['attached']
+    sentences = [" ".join(flatten(sentence).values()) for sentence in sub_branches]
+    return [f"{title}: {first_value}","[latex]"+"<br>\n".join(sentences)+"[/latex]"]
+
 def build_nested_cards(data, title):
-    build_card = lambda value_list: [f"{title}: {value_list[0]}","[latex]"+"\n".join(value_list[1:])+"[/latex]"]
-    return [ build_card( list(flatten(sub_b).values()) ) for sub_b in data ]
+    return [ build_nested_card(sub_b, title) for sub_b in data ]
 
 def build_flat_cards(data, title):
     build_card = lambda value_list: "\n".join(value_list)
@@ -54,8 +58,7 @@ def format_data(clean_data):
     for branch in clean_data: 
         try:
             title = branch.pop("title")
-        # if branch head only contains LaTeX there will be a keyError
-        except KeyError:
+        except KeyError: # if branch head only contains LaTeX there will be a keyError
             title = branch['extensions'][0]['content']['content']
         children = branch["children"]["attached"]
         nested = is_nested(children)
@@ -71,9 +74,8 @@ def main():
     csv_contents = [(filename, format_data(data)) for filename, data in cleaned_data]
     #pprint.pprint(csv_contents)
     for filename, csv_data in csv_contents:
-        csv_filename = filename.replace(".xmind", ".csv")
         write_csv(csv_filename, csv_data)
-        print(f'Written output for {filename} to {csv_filename}')
+        print(f'Written output for {filename} to {filename.replace(".xmind", ".csv")}')
 
 if __name__ == "__main__":
     main()
