@@ -27,7 +27,7 @@ def get_data(filename):
 
 def clean_data(data):
     flattened_data = flatten(data)
-    is_relevant = lambda key: "title" in key or 'content.content' in key
+    is_relevant = lambda key: "title" in key or 'content.content' in key 
     format_dict = lambda key, value: '$'+ value.replace("\n","") +'$' if 'content.content' in key else value
     clean_data = { key: format_dict(key,value) for key, value in flattened_data.items() if value and is_relevant(key) }
     return unflatten(clean_data)
@@ -60,9 +60,11 @@ def format_data(clean_data):
             title = branch.pop("title")
         except KeyError: # if branch head only contains LaTeX there will be a keyError
             title = branch['extensions'][0]['content']['content']
-        children = branch["children"]["attached"]
-        nested = is_nested(children)
-        cards = build_nested_cards(children, title) if nested else build_flat_cards(children,title)
+        children = branch['children']
+        summary = children.get('summary', [])
+        content = children["attached"] + summary
+        nested = is_nested(content)
+        cards = build_nested_cards(content, title) if nested else build_flat_cards(content, title)
         result.extend(cards)
 
     return result
@@ -74,8 +76,9 @@ def main():
     csv_contents = [(filename, format_data(data)) for filename, data in cleaned_data]
     #pprint.pprint(csv_contents)
     for filename, csv_data in csv_contents:
+        csv_filename = filename.replace(".xmind", ".csv")
         write_csv(csv_filename, csv_data)
-        print(f'Written output for {filename} to {filename.replace(".xmind", ".csv")}')
+        print(f'Written output for {filename} to {csv_filename}')
 
 if __name__ == "__main__":
     main()
