@@ -41,7 +41,14 @@ def is_nested(children):
 def build_nested_card(sub_b, title):
     flat_data = flatten(sub_b)
     first_value = flat_data.pop(list(flat_data.keys())[0])
-    sub_branches = unflatten(flat_data)['children']['attached']
+    unflat_data = unflatten(flat_data)
+    print(first_value, "\n")
+    try:
+        sub_branches = unflat_data['children']['attached']
+    # If branch only has one node unflat_data will become empty and there will be a KeyError
+    except KeyError: 
+        raise Exception(f"Sub branch has only 1 value or is empty")
+
     sentences = [" ".join(flatten(sentence).values()) for sentence in sub_branches]
     return [f"{title}: {first_value}","[latex]"+"<br>\n".join(sentences)+"[/latex]"]
 
