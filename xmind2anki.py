@@ -17,7 +17,8 @@ def handle_input(args):
 def write_csv(filename, rows):
     with open(filename, 'w') as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerows(rows)
+        tag = [filename.replace(".csv", "")]
+        csv_writer.writerows([row + tag for row in rows])
 
 def get_data(filename):
     zip_file = zipfile.ZipFile(filename, 'r')
@@ -36,7 +37,7 @@ def is_nested(children):
     flat_children = flatten(children)
     nested_count = [1 if key.count('children.attached') >= 1 else 0 for key in flat_children.keys()]
     average = sum(nested_count) / len(nested_count)
-    return True if average > 0.5 else False
+    return True if average > 0.7 else False
 
 def build_nested_card(sub_b, title):
     flat_data = flatten(sub_b)
