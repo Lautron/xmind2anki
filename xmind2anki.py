@@ -34,16 +34,14 @@ def clean_data(data):
     return unflatten(clean_data)
 
 def is_nested(children):
-    flat_children = flatten(children)
-    nested_count = [1 if key.count('children.attached') >= 1 else 0 for key in flat_children.keys()]
-    average = sum(nested_count) / len(nested_count)
-    return True if average > 0.7 else False
+    res = ["children" in child for child in children]
+    return all(res)
 
 def build_nested_card(sub_b, title):
     flat_data = flatten(sub_b)
     first_value = flat_data.pop(list(flat_data.keys())[0])
     unflat_data = unflatten(flat_data)
-    print(first_value, "\n")
+    print("  ", first_value)
     try:
         sub_branches = unflat_data['children']['attached']
     # If branch only has one node unflat_data will become empty and there will be a KeyError
@@ -71,8 +69,10 @@ def format_data(clean_data):
         children = branch['children']
         summary = children.get('summary', [])
         content = children["attached"] + summary
+        print(title)
         nested = is_nested(content)
         cards = build_nested_cards(content, title) if nested else build_flat_cards(content, title)
+        print("-"*100)
         result.extend(cards)
 
     return result
@@ -82,7 +82,6 @@ def main():
     data_list = [(filename, get_data(filename)) for filename in files]
     cleaned_data = [(filename, clean_data(data)) for filename, data in data_list]
     csv_contents = [(filename, format_data(data)) for filename, data in cleaned_data]
-    #pprint.pprint(csv_contents)
     for filename, csv_data in csv_contents:
         csv_filename = filename.replace(".xmind", ".csv")
         write_csv(csv_filename, csv_data)
