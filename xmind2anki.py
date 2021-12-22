@@ -17,7 +17,7 @@ def handle_input(args):
 def write_csv(filename, rows):
     with open(filename, 'w') as csv_file:
         csv_writer = csv.writer(csv_file)
-        tag = [filename.replace(".csv", "")]
+        tag = [filename.replace(".csv", "").replace(" ", "_")]
         csv_writer.writerows([row + tag for row in rows])
 
 def get_data(filename):
@@ -48,8 +48,9 @@ def build_nested_card(sub_b, title):
     except KeyError: 
         raise Exception(f"Sub branch has only 1 value or is empty")
 
+    subtitle = f"[latex]{first_value}[/latex]" if "$" in first_value else first_value
     sentences = [" ".join(flatten(sentence).values()) for sentence in sub_branches]
-    return [f"{title}: {first_value}","[latex]"+"<br>\n".join(sentences)+"[/latex]"]
+    return [f"{title}: {subtitle}","[latex]"+"<br>\n".join(sentences)+"[/latex]"]
 
 def build_nested_cards(data, title):
     return [ build_nested_card(sub_b, title) for sub_b in data ]
